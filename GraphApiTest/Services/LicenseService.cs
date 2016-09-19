@@ -17,14 +17,24 @@ namespace GraphApiTest.Services
             _graphClient = graphClient;
         }
 
-        public void SetLicense(string userPrincipalName, Guid licenseSkuId, IList<Guid> disabledPlansGuids)
+        public User SetLicense(string userPrincipalName, Guid licenseSkuId, IList<Guid> disabledPlansGuids)
         {
             var assignedLicense = new AssignedLicense();
+            //assignedLicense.AdditionalData = new Dictionary<string, object>();
             assignedLicense.SkuId = licenseSkuId;
             assignedLicense.DisabledPlans = disabledPlansGuids;
 
-            var result = _graphClient.Users[userPrincipalName].AssignLicense(new List<AssignedLicense> { assignedLicense }, new List<Guid>());
-            var request = result.Request();
+            var request = _graphClient.Users[userPrincipalName].AssignLicense(new List<AssignedLicense> { assignedLicense }, new List<Guid>());
+            var response = request.Request().PostAsync();
+            //try
+            //{
+                response.Wait();
+            //}
+            //catch { }
+            if(response.Exception == null)
+                return response.Result;
+
+            return null;
         }
 
         public IList<SubscribedSku> SubscribedSkus()
