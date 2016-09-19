@@ -10,52 +10,34 @@ namespace GraphApiTest.Services
 {
     public class UserService
     {
-        private GraphServiceClient graphClient;
-        public UserService()
-        {
-            graphClient = new GraphServiceClient("https://graph.microsoft.com/currentServiceVersion", new AzureAuthenticationProvider());
-        }
-
+        private GraphServiceClient _graphClient;
+        
         public UserService(GraphServiceClient graphClient)
         {
-            this.graphClient = graphClient;
+            _graphClient = graphClient;
         }
 
-        public async Task<User> GetMe()
+        public User GetMe()
         {
-            var user = await graphClient
-                     .Me
-                     .Request()
-                     .GetAsync();
-            return user;
-        }
-
-        public void SetLicense(string userPrincipalName)
-        {
-            var assignedLicense = new AssignedLicense();
-            assignedLicense.SkuId = Guid.NewGuid();
-            assignedLicense.DisabledPlans = new List<Guid> {
-                Guid.NewGuid()
-            };
-
-            var assignedLicenses = new List<AssignedLicense>();
-            assignedLicenses.Add(assignedLicense);
-            
-            graphClient.Users[userPrincipalName].AssignLicense(assignedLicenses, null).Request();
+            var user = _graphClient.Me.Request().GetAsync();
+            user.Wait();
+            return user.Result;
         }
 
         // Get all users.
-        public async Task<IGraphServiceUsersCollectionPage> GetUsers()
+        public IList<User> GetUsers()
         {
             // Get users.
-            var users = await graphClient.Users.Request().GetAsync();          
-            return users;
+            var users = _graphClient.Users.Request().GetAsync();
+            users.Wait();
+            return users.Result.ToList();
         }
 
-        public async Task<User> GetUser(string userPrincipalName)
+        public User GetUser(string userPrincipalName)
         {
-            var user = await graphClient.Users[userPrincipalName].Request().GetAsync();
-            return user;
+            var user = _graphClient.Users[userPrincipalName].Request().GetAsync();
+            user.Wait();
+            return user.Result;
         }
     }
 }
